@@ -25,6 +25,7 @@ import cv2
 import evo
 import csv
 import yaml
+import tqdm
 
 from robotdatapy.data.robot_data import RobotData
 
@@ -188,7 +189,8 @@ class PoseData(RobotData):
         time_tol: float = .1, 
         t0: float = None, 
         T_premultiply: np.array = None, 
-        T_postmultiply: np.array = None
+        T_postmultiply: np.array = None,
+        odom_messages_in_bag: int = None,
     ):
         """
         Create a PoseData object from a ROS bag file. Supports msg types PoseStamped and Odometry.
@@ -204,7 +206,8 @@ class PoseData(RobotData):
                 the data_file. Defaults to None.
             T_premultiply (np.array, shape(4,4)): Rigid transform to premultiply to the pose.
             T_postmultiply (np.array, shape(4,4)): Rigid transform to postmultiply to the pose.
-
+            odom_messages_in_bag (int): Approximate number of relevenat messages in bag on 'topic, used
+                for progress bar. Optional.
         Returns:
             PoseData: PoseData object
         """
@@ -213,6 +216,9 @@ class PoseData(RobotData):
         positions = []
         orientations = []
         with AnyReader([Path(path)]) as reader:
+            # Setup a tqdm counter so we know how far into reading the bag we are
+            pbar = tqdm.tqdm(total=odom_messages_in_bag, desc="Reading Pose Data...", unit=" messages")
+
             connections = [x for x in reader.connections if x.topic == topic]
             if len(connections) == 0:
                 assert False, f"topic {topic} not found in bag file {path}"
@@ -220,6 +226,10 @@ class PoseData(RobotData):
             last_path_msg = None
             t0 = None
             for (connection, timestamp, rawdata) in reader.messages(connections=connections):
+
+                # Increase the bar
+                pbar.update(1)
+
                 msg = reader.deserialize(rawdata, connection.msgtype)
                 if t0 is None:
                     t0 = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9
