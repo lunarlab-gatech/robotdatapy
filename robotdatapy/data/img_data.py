@@ -197,6 +197,19 @@ class ImgData(RobotData):
         times = data['times']
         imgs = data['imgs']
         return cls(times=times, imgs=imgs, data_type='raw', **kwargs)
+    
+    @classmethod
+    def from_npy(cls, path, path_times, K, D, width, height, time_tol=.1, causal=False, 
+                 t0=None,):
+        """
+        Load image data and timestamps from two .npy files
+        """
+        imgs = np.load(path, mmap_mode='r')
+        times = np.load(path_times)    
+        img_data = cls(times=times, imgs=imgs, data_type='raw', data_path=None,
+                        time_tol=time_tol, causal=causal, t0=t0)
+        img_data.extract_params(None, K, D, width, height)
+        return img_data
         
     def to_mp4(self, path, fps=30):
         """
@@ -249,7 +262,7 @@ class ImgData(RobotData):
         return
         
     
-    def extract_params(self, topic=None):
+    def extract_params(self, topic=None, K=None, D=None, width=None, height=None):
         """
         Get camera parameters
 
@@ -265,8 +278,13 @@ class ImgData(RobotData):
             P2 = self.imgs.calib.P_rect_20.reshape((3, 4))
             k, r, t, _, _, _, _ = cv2.decomposeProjectionMatrix(P2)
             self.camera_params = CameraParams(k, np.zeros(4), 1241, 376) # Hard coding for now.... TODO: improve this
+        elif self.data_type == 'raw':
+            if K is not None and D is not None and width is not None and height is not None:
+                self.camera_params = CameraParams(np.array(K).reshape((3,3)), np.array(D), width, height)
+            else:
+                raise ValueError("Missing input arguments!")
         else:
-            assert False, "data_type not supported, please choose from: bag, bag2, kitti"
+            assert False, "data_type not supported, please choose from: bag, bag2, kitti, raw"
         return self.camera_params.K, self.camera_params.D
         
     def img(self, t: float):
