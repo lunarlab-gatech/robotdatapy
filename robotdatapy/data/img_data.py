@@ -199,16 +199,28 @@ class ImgData(RobotData):
         return cls(times=times, imgs=imgs, data_type='raw', **kwargs)
     
     @classmethod
-    def from_npy(cls, path, path_times, K, D, width, height, time_tol=.1, causal=False, 
+    def from_npy(cls, path, path_times, K, D, width, height, encoding: str, time_tol=.1, causal=False, 
                  t0=None,):
         """
         Load image data and timestamps from two .npy files
         """
         imgs = np.load(path, mmap_mode='r')
         times = np.load(path_times)    
+
+        # ROMAN algorithm expects data in BGR , so transform if necessary
+        if encoding == "rgb8":
+            print("FLIPPING IMAGES")
+            imgs = imgs[..., ::-1]
+        elif encoding == "32FC1":
+            pass # This is depth data, so depth_data_type will handle this later.
+        else:
+            raise NotImplementedError(f"This encoding {encoding} is not implemented yet!")
+
+        # Create class
         img_data = cls(times=times, imgs=imgs, data_type='raw', data_path=None,
                         time_tol=time_tol, causal=causal, t0=t0)
         img_data.extract_params(None, K, D, width, height)
+
         return img_data
         
     def to_mp4(self, path, fps=30):
