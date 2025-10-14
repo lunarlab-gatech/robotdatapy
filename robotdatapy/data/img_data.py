@@ -199,17 +199,15 @@ class ImgData(RobotData):
         return cls(times=times, imgs=imgs, data_type='raw', **kwargs)
     
     @classmethod
-    def from_npy(cls, path, path_times, K, D, width, height, encoding: str, time_tol=.1, causal=False, 
-                 t0=None,):
+    def from_npy(cls, path, path_times, K, D, width, height, encoding: str, time_tol=.1, causal=False):
         """
         Load image data and timestamps from two .npy files
         """
         imgs = np.load(path, mmap_mode='r')
         times = np.load(path_times)    
 
-        # ROMAN algorithm expects data in BGR , so transform if necessary
+        # ROMAN algorithm expects data in BGR, so transform if necessary
         if encoding == "rgb8":
-            print("FLIPPING IMAGES")
             imgs = imgs[..., ::-1]
         elif encoding == "32FC1":
             pass # This is depth data, so depth_data_type will handle this later.
@@ -218,7 +216,7 @@ class ImgData(RobotData):
 
         # Create class
         img_data = cls(times=times, imgs=imgs, data_type='raw', data_path=None,
-                        time_tol=time_tol, causal=causal, t0=t0)
+                        time_tol=time_tol, causal=causal, t0=None)
         img_data.extract_params(None, K, D, width, height)
 
         return img_data

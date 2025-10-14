@@ -45,3 +45,9 @@ Depth images are supported as well.
 
 This class can be used for storing generic data. For example, discrete samples of position, velocity, and acceleration.
 Linear interpolation can be turned on to enable accessing this data at any time.
+
+## Tests
+Run the following command to run the test cases:
+```
+python -m unittest discover -s tests
+```

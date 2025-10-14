@@ -1,0 +1,5 @@
+image_shape: (480,752)
+frame_id: front_center_DepthPerspective
+height: 480
+width: 752
+encoding: ImageEncoding._32FC1
