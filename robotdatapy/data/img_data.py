@@ -15,7 +15,9 @@ from robotdatapy.exceptions import MsgNotFound
 # ROS dependencies
 try:
     import cv_bridge
+    HAS_CV_BRIDGE = True
 except:
+    HAS_CV_BRIDGE = False
     print("Warning: import cv_bridge failed. Is ROS installed and sourced? " + 
           "Without cv_bridge, the ImgData class may fail.")    
         
@@ -73,7 +75,8 @@ class ImgData(RobotData):
         self.data_path = data_path
         self.data_type = data_type
         self.interp = False
-        self.bridge = cv_bridge.CvBridge()
+        if HAS_CV_BRIDGE:
+            self.bridge = cv_bridge.CvBridge()
         if t0 is not None:
             self.set_t0(t0)
             
