@@ -213,9 +213,9 @@ class ImgData(RobotData):
         if encoding == "rgb8":
             imgs = imgs[..., ::-1]
         elif encoding == "mono8":
-            # Duplicate the single channel into 3 identical channels, since channel
-            # order doesn't matter when all channels are equal.
-            imgs = np.repeat(imgs[..., np.newaxis], 3, axis=-1)
+            # Duplicate the single channel into 3 identical channels as a zero-copy
+            # view (not np.repeat), so the mmap'd array isn't materialized in RAM.
+            imgs = np.broadcast_to(imgs[..., np.newaxis], imgs.shape + (3,))
         elif encoding == "32FC1":
             pass # This is depth data, so depth_data_type will handle this later.
         else:
