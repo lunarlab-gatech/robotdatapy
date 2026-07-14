@@ -212,6 +212,10 @@ class ImgData(RobotData):
         # ROMAN algorithm expects data in BGR, so transform if necessary
         if encoding == "rgb8":
             imgs = imgs[..., ::-1]
+        elif encoding == "mono8":
+            # Duplicate the single channel into 3 identical channels, since channel
+            # order doesn't matter when all channels are equal.
+            imgs = np.repeat(imgs[..., np.newaxis], 3, axis=-1)
         elif encoding == "32FC1":
             pass # This is depth data, so depth_data_type will handle this later.
         else:
